@@ -9,30 +9,29 @@ int main(int argc, char** argv) {
 
   createLoggers();
 
-  namespace po = cxxopts;
-  po::Options desc(argv[0]);
+  cxxopts::Options desc(argv[0]);
   // clang-format off
   desc.add_options()
-    ("m,max-size",
-     "Generate only  arg  most common vocabulary items",
-     po::value<size_t>()->default_value("0"))
-    ("h,help",
-     "Print this message and exit")
+    ("m,max-size", "Generate only  arg  most common vocabulary items",
+     cxxopts::value<size_t>()->default_value("0"))
+    ("h,help", "Print this message and exit")
     ;
   // clang-format on
 
-  auto vm = desc.parse(argc, argv);
+  size_t maxSize = 0;
 
   try {
-  } catch(po::OptionException& e) {
+    auto vm = desc.parse(argc, argv);
+    if(vm.count("help")) {
+      std::cerr << desc.help();
+      exit(0);
+    }
+    maxSize = vm["max-size"].as<size_t>();
+
+  } catch(cxxopts::OptionException& e) {
     std::cerr << "Error: " << e.what() << std::endl << std::endl;
     std::cerr << desc.help();
     exit(1);
-  }
-
-  if(vm.count("help")) {
-    std::cerr << desc.help();
-    exit(0);
   }
 
   LOG(info, "Creating vocabulary...");
@@ -40,7 +39,7 @@ int main(int argc, char** argv) {
   auto vocab = New<Vocab>();
   InputFileStream corpusStrm(std::cin);
   OutputFileStream vocabStrm(std::cout);
-  vocab->create(corpusStrm, vocabStrm, vm["max-size"].as<size_t>());
+  vocab->create(corpusStrm, vocabStrm, maxSize);
 
   LOG(info, "Finished");
 
