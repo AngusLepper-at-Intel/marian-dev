@@ -9,11 +9,11 @@ int main(int argc, char** argv) {
 
   createLoggers();
 
-  cxxopts::Options desc(argv[0]);
+  cxxopts::Options options(argv[0], "Marian NMT vocabulary creator");
   // clang-format off
-  desc.add_options()
-    ("m,max-size", "Generate only  arg  most common vocabulary items",
-     cxxopts::value<size_t>()->default_value("0"))
+  options.add_options()
+    ("m,max-size", "Generate only N most common vocabulary items",
+     cxxopts::value<size_t>()->default_value("0"), "N")
     ("h,help", "Print this message and exit")
     ;
   // clang-format on
@@ -21,16 +21,16 @@ int main(int argc, char** argv) {
   size_t maxSize = 0;
 
   try {
-    auto vm = desc.parse(argc, argv);
-    if(vm.count("help")) {
-      std::cerr << desc.help();
+    auto args = options.parse(argc, argv);
+    if(args.count("help")) {
+      std::cerr << options.help();
       exit(0);
     }
-    maxSize = vm["max-size"].as<size_t>();
+    maxSize = args["max-size"].as<size_t>();
 
   } catch(cxxopts::OptionException& e) {
     std::cerr << "Error: " << e.what() << std::endl << std::endl;
-    std::cerr << desc.help();
+    std::cerr << options.help();
     exit(1);
   }
 
