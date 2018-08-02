@@ -1,7 +1,6 @@
 #include "marian.h"
 
-#include <boost/program_options.hpp>
-
+#include "3rd_party/cxxopts.hpp"
 #include "common/logging.h"
 #include "data/vocab.h"
 
@@ -10,30 +9,29 @@ int main(int argc, char** argv) {
 
   createLoggers();
 
-  namespace po = boost::program_options;
-  po::options_description desc("Allowed options");
+  namespace po = cxxopts;
+  po::Options desc(argv[0]);
   // clang-format off
   desc.add_options()
-    ("max-size,m", po::value<size_t>()->default_value(0),
-     "Generate only  arg  most common vocabulary items")
-    ("help,h", "Print this message and exit")
+    ("m,max-size",
+     "Generate only  arg  most common vocabulary items",
+     po::value<size_t>()->default_value("0"))
+    ("h,help",
+     "Print this message and exit")
     ;
   // clang-format on
 
-  po::variables_map vm;
+  auto vm = desc.parse(argc, argv);
+
   try {
-    po::store(po::parse_command_line(argc, argv, desc), vm);
-    po::notify(vm);
-  } catch(std::exception& e) {
+  } catch(po::OptionException& e) {
     std::cerr << "Error: " << e.what() << std::endl << std::endl;
-    std::cerr << "Usage: " << argv[0] << " [options]" << std::endl << std::endl;
-    std::cerr << desc << std::endl;
+    std::cerr << desc.help();
     exit(1);
   }
 
   if(vm.count("help")) {
-    std::cerr << "Usage: " << argv[0] << " [options]" << std::endl << std::endl;
-    std::cerr << desc << std::endl;
+    std::cerr << desc.help();
     exit(0);
   }
 
